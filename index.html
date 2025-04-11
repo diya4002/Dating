@@ -1,1 +1,71 @@
-<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSd12VzY1pju3Hi4g6Gn4kkqJfn9m153lqGbwRD7fsVNDUBGAQ/viewform?embedded=true" width="100%" height="100%" frameborder="2px" marginheight="0" marginwidth="0">Loading</iframe>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Text to Speech</title>
+</head>
+<body>
+  <h1>Text to Speech</h1>
+  <textarea id="text" placeholder="Enter text here"></textarea>
+  <button id="speak">Speak</button>
+  <button id="save">Save as MP3</button>
+  <audio id="audio" controls></audio>
+
+  <script>
+    const textElement = document.getElementById('text');
+    const speakButton = document.getElementById('speak');
+    const saveButton = document.getElementById('save');
+    const audioElement = document.getElementById('audio');
+
+    speakButton.addEventListener('click', () => {
+      const text = textElement.value;
+      const speech = new SpeechSynthesisUtterance(text);
+      speech.lang = 'en-US';
+      speech.volume = 1;
+      speech.rate = 1;
+      speech.pitch = 1;
+      window.speechSynthesis.speak(speech);
+    });
+
+    saveButton.addEventListener('click', () => {
+      const text = textElement.value;
+      const speech = new SpeechSynthesisUtterance(text);
+      speech.lang = 'en-US';
+      speech.volume = 1;
+      speech.rate = 1;
+      speech.pitch = 1;
+
+      const audioData = [];
+      speech.onstart = () => {
+        const audioContext = new AudioContext();
+        const source = audioContext.createBufferSource();
+        source.connect(audioContext.destination);
+
+        const mediaStreamDestination = audioContext.createMediaStreamDestination();
+        source.connect(mediaStreamDestination);
+        const mediaRecorder = new MediaRecorder(mediaStreamDestination.stream);
+
+        mediaRecorder.ondataavailable = (event) => {
+          audioData.push(event.data);
+        };
+
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioData, { type: 'audio/mp3' });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          const a = document.createElement('a');
+          a.href = audioUrl;
+          a.download = 'text-to-speech.mp3';
+          a.click();
+        };
+
+        mediaRecorder.start();
+      };
+
+      speech.onend = () => {
+        mediaRecorder.stop();
+      };
+
+      window.speechSynthesis.speak(speech);
+    });
+  </script>
+</body>
+</html>
